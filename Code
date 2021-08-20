@@ -1,0 +1,48 @@
+# generator liczb
+generator_jednostajny <- function(n, a, b){
+  
+  losowanie <- runif(n, a, b)
+  }
+
+# analiza błędu I-rodzaju
+n <- 20
+alpha <- 0.05
+
+m <- 10000
+p <-numeric(m)
+for (j in 1:m) {
+   sample <- generator_jednostajny(n, -1, 1)
+   zaobserwowany_rozklad <- table(sample)
+   oczekiwany_rozklad <- rep(1/n, n)
+   chi_test <- chisq.test(zaobserwowany_rozklad, p = oczekiwany_rozklad)
+   p[j] <- chi_test$p.value
+   }
+
+p_hat <- mean(p<alpha)
+SE_hat=sqrt(p_hat * (1 - p_hat) / m)
+print(c(p_hat, SE_hat))
+
+# Testowana hipoteza brzmi, czy prawdopodobieństwa w populacji są równe prawdopodobieństwu p, czy też wszystkie są równe, jeśli nie podano p.
+
+# wyznaczenie mocy testu
+n <- c(c(5, 10, 15), seq(25, 105, 5))
+alpha <- 0.05
+m <- 10000
+
+p <- length(n)
+moc <- numeric(p)
+
+for (j in 1:p) {
+  n1 <- n[j]
+  
+  p_wartosci <- replicate(m, expr = {
+    sample <- generator_jednostajny(n1, -1, 1)
+    zaobserwowany_rozklad <- table(sample)
+    oczekiwany_rozklad <- c(0.5, 0.5, rep(0, n1-2))
+    chi_test <- chisq.test(zaobserwowany_rozklad, p = oczekiwany_rozklad)
+    chi_test$p.value })
+  
+  moc[j] <- mean(p_wartosci <= 0.05)
+
+}
+moc
